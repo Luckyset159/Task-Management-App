@@ -486,24 +486,29 @@
     const btn = document.getElementById("mt-btn");
     btn.disabled = true; btn.innerText = "Updating...";
 
+    const newStatus = document.getElementById("mt-status").value;
+
     const res = await apiCall("updateTaskStatus", {
       Task_ID: state.currentTaskId,
-      Status: document.getElementById("mt-status").value,
+      Status: newStatus,
       Remark: document.getElementById("mt-remark").value.trim()
     });
 
     btn.disabled = false; btn.innerText = "Save Updates";
     if (!res.ok) { setMsg("mt-msg", "error", res.error); return; }
     
-    const tIndex = state.tasks.findIndex(t => t.Task_ID == res.Task_ID);
+    // FIX: Convert both IDs to integers so "1" perfectly matches "001"
+    const tIndex = state.tasks.findIndex(t => parseInt(t.Task_ID, 10) === parseInt(state.currentTaskId, 10));
+    
     if (tIndex > -1) {
-      state.tasks[tIndex].Status = res.Status;
-      state.tasks[tIndex].Last_update = res.Last_update;
+      state.tasks[tIndex].Status = newStatus;
+      if (res.Last_update) state.tasks[tIndex].Last_update = res.Last_update;
     }
     
-    closeModals(); applyFilters(); 
+    closeModals(); 
+    applyFilters(); 
   }
-
+  
   function openNewTaskModal() {
     document.getElementById("nm-title").value = "";
     document.getElementById("nm-desc").value = "";
@@ -574,4 +579,5 @@
   }
 </script>
 </body>
+
 </html>
