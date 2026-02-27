@@ -6,21 +6,74 @@
   <title>Task Manager</title>
 
   <style>
+    /* --- CSS VARIABLES (Dynamic Theming) --- */
     :root {
-      --bg: #0b1220; --card: #101a33; --card-trans: rgba(16,26,51,.78);
-      --text: #eaf0ff; --muted: #93a4c7; --line: rgba(255,255,255,.10);
-      --accent: #5eead4; --accent2: #60a5fa; --danger: #fb7185;
-      --shadow: 0 18px 50px rgba(0,0,0,.45); --radius: 18px;
+      /* DARK THEME (Default) */
+      --bg: #0b1220; 
+      --card: #101a33; 
+      --card-trans: rgba(16,26,51,.85);
+      --text: #eaf0ff; 
+      --muted: #93a4c7; 
+      --line: rgba(255,255,255,.10);
+      --accent: #5eead4; 
+      --accent2: #60a5fa; 
+      --danger: #fb7185;
+      --shadow: 0 18px 50px rgba(0,0,0,.45); 
+      --radius: 18px;
+      
+      /* Specific UI Elements */
+      --input-bg: #1a243d; 
+      --btn-text: #062018; 
+      --pill-bg: rgba(255,255,255,0.1); 
+      --progress-bg: rgba(255,255,255,.08);
+      --urgent-bg: rgba(239, 68, 68, 0.2); 
+      --urgent-text: #fca5a5;
+      --import-bg: rgba(245, 158, 11, 0.2); 
+      --import-text: #fcd34d;
+      --modal-bg: rgba(0,0,0,0.7);
     }
+
+    body.light-mode {
+      /* LIGHT THEME */
+      --bg: #f8fafc; 
+      --card: #ffffff; 
+      --card-trans: rgba(255,255,255,.95);
+      --text: #0f172a; 
+      --muted: #64748b; 
+      --line: rgba(15,23,42,.1);
+      --accent: #0ea5e9; /* Deepened for contrast */
+      --accent2: #3b82f6; 
+      --danger: #e11d48;
+      --shadow: 0 8px 30px rgba(0,0,0,.06); 
+      
+      /* Specific UI Elements */
+      --input-bg: #f1f5f9; 
+      --btn-text: #ffffff;
+      --pill-bg: rgba(15,23,42,0.06); 
+      --progress-bg: rgba(15,23,42,.08);
+      --urgent-bg: rgba(225, 29, 72, 0.1); 
+      --urgent-text: #e11d48;
+      --import-bg: rgba(217, 119, 6, 0.1); 
+      --import-text: #d97706;
+      --modal-bg: rgba(15,23,42,0.4);
+    }
+
     * { box-sizing: border-box; }
+    
     body {
       margin: 0; min-height: 100vh;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background-color: var(--bg);
+      color: var(--text);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Keep the glowing orbs only for dark mode */
+    body:not(.light-mode) {
       background: radial-gradient(1200px 600px at 15% 10%, rgba(94,234,212,.18), transparent 55%),
                   radial-gradient(900px 500px at 90% 20%, rgba(96,165,250,.18), transparent 55%),
                   radial-gradient(900px 700px at 40% 100%, rgba(139,92,246,.12), transparent 60%),
                   var(--bg);
-      color: var(--text);
     }
 
     /* --- View Containers --- */
@@ -32,53 +85,58 @@
     .brand { text-align: center; margin-bottom: 14px; }
     .brand h1 { margin: 0; font-size: 26px; }
     .brand .sub { margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card-trans); box-shadow: var(--shadow); padding: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card-trans); box-shadow: var(--shadow); padding: 16px; transition: background-color 0.3s, border-color 0.3s; }
     label { display: block; font-weight: 800; font-size: 12px; color: var(--muted); margin: 10px 0 6px; text-transform: uppercase;}
     
     input, select, textarea { 
-      width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2); 
-      background: #1a243d; color: #ffffff; outline: none; font-size: 15px; font-family: inherit; margin-bottom: 8px;
+      width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--line); 
+      background: var(--input-bg); color: var(--text); outline: none; font-size: 15px; font-family: inherit; margin-bottom: 8px;
+      transition: background-color 0.3s, color 0.3s;
     }
-    select option { background: #0b1220; color: #ffffff; }
+    select option { background: var(--card); color: var(--text); }
     
-    .btn { width: 100%; margin-top: 14px; border: none; padding: 12px 14px; border-radius: 14px; cursor: pointer; font-weight: 900; color: #062018; background: linear-gradient(135deg, var(--accent), var(--accent2)); font-size: 15px; }
+    .btn { width: 100%; margin-top: 14px; border: none; padding: 12px 14px; border-radius: 14px; cursor: pointer; font-weight: 900; color: var(--btn-text); background: linear-gradient(135deg, var(--accent), var(--accent2)); font-size: 15px; transition: opacity 0.2s;}
     .btn:disabled { opacity: .7; cursor: not-allowed; filter: grayscale(.1); }
     .msg { margin-top: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); font-size: 13px; display: none; }
-    .msg.ok { display: block; border-color: rgba(94,234,212,.30); color: #ccfbf1; background: rgba(94,234,212,.06); }
-    .msg.error { display: block; border-color: rgba(251,113,133,.35); color: #fecdd3; background: rgba(251,113,133,.08); }
+    .msg.ok { display: block; border-color: rgba(94,234,212,.30); color: #0d9488; background: rgba(94,234,212,.15); }
+    body:not(.light-mode) .msg.ok { color: #ccfbf1; background: rgba(94,234,212,.06); }
+    
+    .msg.error { display: block; border-color: rgba(251,113,133,.35); color: #e11d48; background: rgba(251,113,133,.15); }
+    body:not(.light-mode) .msg.error { color: #fecdd3; background: rgba(251,113,133,.08); }
 
     /* --- App Styles --- */
     .app-wrap { max-width: 900px; margin: 0 auto; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 14px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 14px; }
-    .panel { background: var(--card); padding: 14px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 14px; }
-    .btnGhost { background: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; cursor: pointer; color: var(--text); font-weight: bold;}
-    .btnGhost:hover { background: rgba(255,255,255,0.05); }
+    .topbar { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 14px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 14px; transition: background-color 0.3s, border-color 0.3s; }
+    .panel { background: var(--card); padding: 14px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 14px; transition: background-color 0.3s, border-color 0.3s; }
+    
+    .btnGhost { background: none; border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; cursor: pointer; color: var(--text); font-weight: bold; transition: background-color 0.2s; }
+    .btnGhost:hover { background: var(--pill-bg); }
     
     .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     .controls input, .controls select { flex: 1; min-width: 140px; margin-bottom: 0; padding: 10px;}
     .controls .btn { width: auto; margin-top: 0; padding: 10px 16px; }
 
-    .progressBar { height: 12px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+    .progressBar { height: 12px; background: var(--progress-bg); border-radius: 999px; overflow: hidden; margin-top: 6px; }
     .progressFill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
-    .fillRed { background: #ef4444; } .fillAmber { background: #f59e0b; } .fillGreen { background: #10b981; }
+    .fillRed { background: var(--danger); } .fillAmber { background: #f59e0b; } .fillGreen { background: #10b981; }
     
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: left;}
     tr { cursor: pointer; transition: background 0.2s; }
-    tr:hover { background: rgba(255,255,255,0.05); }
+    tr:hover { background: var(--pill-bg); }
     
     .cards { display: none; }
     .taskCard { background: var(--card); padding: 14px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 12px; cursor: pointer; transition: border-color 0.2s; }
     .taskCard:hover { border-color: var(--accent); }
     
-    .pill { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; background: rgba(255,255,255,0.1); margin-top: 4px; }
-    .pill.urgent { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
-    .pill.important { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    .pill { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; background: var(--pill-bg); margin-top: 4px; }
+    .pill.urgent { background: var(--urgent-bg); color: var(--urgent-text); }
+    .pill.important { background: var(--import-bg); color: var(--import-text); }
 
     /* --- Modals --- */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 14px; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--modal-bg); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 14px; }
     .modal-overlay.active { display: flex; }
-    .modal { background: var(--card); border: 1px solid var(--line); border-radius: 18px; width: 100%; max-width: 500px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+    .modal { background: var(--card); border: 1px solid var(--line); border-radius: 18px; width: 100%; max-width: 500px; padding: 20px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .modal-header h2 { margin: 0; font-size: 20px; }
     .close-btn { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; line-height: 1; }
@@ -95,6 +153,7 @@
 <body>
 
   <div id="loginView">
+    <button class="btnGhost theme-toggle-btn" onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px; padding: 8px 12px; font-size: 16px; border-radius: 50%; z-index: 10;">☀️</button>
     <div class="login-wrap">
       <div class="brand">
         <h1>Task Manager</h1>
@@ -118,7 +177,8 @@
           <b id="appName">Task Manager</b>
           <div id="who" class="pill" style="margin-top:2px;"></div>
         </div>
-        <div>
+        <div style="display:flex; gap: 10px; align-items: center;">
+          <button class="btnGhost theme-toggle-btn" onclick="toggleTheme()" style="padding: 8px 12px; font-size: 16px; border-radius: 50%;">☀️</button>
           <button class="btnGhost" onclick="signOut()">Sign out</button>
         </div>
       </div>
@@ -147,7 +207,7 @@
       <div class="panel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <b style="font-size:16px;">Task List</b>
-          <span id="taskCountText" class="pill" style="margin-top:0; background:rgba(255,255,255,0.15); color:var(--text); padding:4px 10px;">0 of 0 tasks</span>
+          <span id="taskCountText" class="pill" style="margin-top:0;">0 of 0 tasks</span>
         </div>
         
         <table>
@@ -177,7 +237,7 @@
       <div id="mt-dept" style="margin-bottom:12px;"></div>
       
       <label>Description</label>
-      <div id="mt-desc" style="margin-bottom:16px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; font-size:14px; white-space:pre-wrap;"></div>
+      <div id="mt-desc" style="margin-bottom:16px; background:var(--input-bg); padding:10px; border-radius:8px; border: 1px solid var(--line); font-size:14px; white-space:pre-wrap;"></div>
 
       <div class="grid-2">
         <div><label>Priority</label><div id="mt-priority" style="margin-bottom:12px;"></div></div>
@@ -209,7 +269,7 @@
       
       <div id="nm-dept-readonly-container" class="hidden" style="margin-bottom: 12px;">
         <label>Department</label>
-        <div id="nm-dept-readonly" style="font-weight: bold; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); color: var(--muted);"></div>
+        <div id="nm-dept-readonly" style="font-weight: bold; padding: 12px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--line); color: var(--muted);"></div>
       </div>
 
       <label>Task Title</label>
@@ -236,7 +296,7 @@
       </p>
       <div style="display: flex; gap: 12px;">
         <button class="btnGhost" style="flex: 1; padding: 12px;" onclick="closeConfirmDelete()">Cancel</button>
-        <button class="btn" id="confirm-delete-btn" style="flex: 1; background: var(--danger); color: #fff; padding: 12px;" onclick="executeDelete()">Yes, Delete</button>
+        <button class="btn" id="confirm-delete-btn" style="flex: 1; background: var(--danger); color: #fff; padding: 12px; border: none;" onclick="executeDelete()">Yes, Delete</button>
       </div>
     </div>
   </div>
@@ -257,11 +317,19 @@
     currentTaskId: null 
   };
 
+  // --- Theme Toggle Logic ---
+  function toggleTheme() {
+    const isLight = document.body.classList.toggle("light-mode");
+    localStorage.setItem("tm_theme", isLight ? "light" : "dark");
+    
+    // Update all theme toggle buttons on the screen
+    const icon = isLight ? "🌙" : "☀️";
+    document.querySelectorAll(".theme-toggle-btn").forEach(btn => btn.innerText = icon);
+  }
+
   // --- Core API Fetcher ---
-  // This completely replaces `google.script.run`
   async function apiCall(action, payload = {}) {
     try {
-      // Send a plain text POST to bypass CORS restrictions for Google Apps Script
       const response = await fetch(API_URL, {
         method: "POST",
         body: JSON.stringify({ action: action, token: state.token, payload: payload })
@@ -275,6 +343,12 @@
 
   // --- Initialization & View Management ---
   document.addEventListener("DOMContentLoaded", () => {
+    // Check saved theme
+    if (localStorage.getItem("tm_theme") === "light") {
+      document.body.classList.add("light-mode");
+      document.querySelectorAll(".theme-toggle-btn").forEach(btn => btn.innerText = "🌙");
+    }
+
     state.token = sessionStorage.getItem("tm_token");
     if (state.token) loadDashboardData();
     else switchView("loginView");
@@ -293,7 +367,7 @@
     el.style.display = text ? "block" : "none";
   }
 
-  // --- Login Logic (Refactored to async/await) ---
+  // --- Login Logic ---
   async function submitLogin() {
     const u = document.getElementById("u").value.trim();
     const p = document.getElementById("p").value;
@@ -461,7 +535,7 @@
 
   // --- Modals & Data Modification ---
   function openTaskModal(taskId) {
-    const task = state.tasks.find(t => t.Task_ID == taskId);
+    const task = state.tasks.find(t => parseInt(t.Task_ID, 10) === parseInt(taskId, 10));
     if (!task) return;
     state.currentTaskId = taskId;
 
@@ -497,7 +571,7 @@
     btn.disabled = false; btn.innerText = "Save Updates";
     if (!res.ok) { setMsg("mt-msg", "error", res.error); return; }
     
-    // FIX: Convert both IDs to integers so "1" perfectly matches "001"
+    // Fix applied to force match ID numbers
     const tIndex = state.tasks.findIndex(t => parseInt(t.Task_ID, 10) === parseInt(state.currentTaskId, 10));
     
     if (tIndex > -1) {
@@ -508,7 +582,7 @@
     closeModals(); 
     applyFilters(); 
   }
-  
+
   function openNewTaskModal() {
     document.getElementById("nm-title").value = "";
     document.getElementById("nm-desc").value = "";
@@ -559,7 +633,7 @@
     btn.disabled = false; btn.innerText = "Yes, Delete";
     if (!res.ok) { setMsg("mt-msg", "error", res.error); closeConfirmDelete(); return; }
     
-    state.tasks = state.tasks.filter(t => t.Task_ID != res.Task_ID);
+    state.tasks = state.tasks.filter(t => parseInt(t.Task_ID, 10) !== parseInt(res.Task_ID, 10));
     closeModals(); applyFilters(); 
   }
 
@@ -579,5 +653,4 @@
   }
 </script>
 </body>
-
 </html>
